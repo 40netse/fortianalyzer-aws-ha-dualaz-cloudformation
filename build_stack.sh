@@ -94,18 +94,18 @@ make_s3 $license_bucket $faz2_license_file
 
 if [ "${KI_SPECIFIED}" == true ]
 then
-    echo "Deploying "$stack1s" Template and the script will pause when the create-stack is complete"
+    echo "Deploying "$stack1" Template and the script will pause when the create-stack is complete"
 else
-    echo "Deploying "$stack1s" Template"
+    echo "Deploying "$stack1" Template"
 fi
 
 #
 # deploy the stack if it doesn't already exist
 #
-count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack1s" |wc -l`
+count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack1" |wc -l`
 if [ "${count}" -eq "0" ]
 then
-    aws cloudformation create-stack --stack-name "$stack1s" --output text --region "$region" \
+    aws cloudformation create-stack --stack-name "$stack1" --output text --region "$region" \
         --template-body file://BaseVPC_Dual_AZ.yaml \
         --parameters ParameterKey=VPCCIDR,ParameterValue="$ha_cidr" \
          ParameterKey=AZForSubnet1,ParameterValue="$region"a \
@@ -121,7 +121,7 @@ fi
 #
 for (( c=1; c<=50; c++ ))
 do
-    count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack1s" |wc -l`
+    count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack1" |wc -l`
     if [ "${count}" -ne "0" ]
     then
         break
@@ -133,7 +133,7 @@ done
 # Pull the outputs from the first template as environment variables that are used in the second and third templates
 #
 tfile=$(mktemp /tmp/foostack1.XXXXXXXXX)
-aws cloudformation describe-stacks --output text --region "$region" --stack-name "$stack1s" --query 'Stacks[*].Outputs[*].{KEY:OutputKey,Value:OutputValue}' > $tfile
+aws cloudformation describe-stacks --output text --region "$region" --stack-name "$stack1" --query 'Stacks[*].Outputs[*].{KEY:OutputKey,Value:OutputValue}' > $tfile
 VPC=`cat $tfile|grep ^VPCID|cut -f2 -d$'\t'`
 VPCCIDR=`cat $tfile|grep ^VPCCIDR|cut -f2 -d$'\t'`
 AZ1=`cat $tfile|grep ^AZ1|cut -f2 -d$'\t'`
@@ -186,20 +186,19 @@ done
 
 if [ "${KI_SPECIFIED}" == true ]
 then
-    echo "Deploying "$stack2a" Template and the script will pause when the create-stack is complete"
+    echo "Deploying "$stack2" Template and the script will pause when the create-stack is complete"
 else
-    echo "Deploying "$stack2a" Template"
+    echo "Deploying "$stack2" Template"
 fi
 
 #
 # Now deploy FortiAnalyzer HA in public subnets on top of the existing VPC
 #
 
-count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack2a" |wc -l`
+count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack2" |wc -l`
 if [ "${count}" -eq "0" ]
 then
-    set -vx
-    aws cloudformation create-stack --stack-name "$stack2a" --output text --region "$region" --capabilities CAPABILITY_IAM \
+    aws cloudformation create-stack --stack-name "$stack2" --output text --region "$region" --capabilities CAPABILITY_IAM \
         --template-body file://FortiAnalyzer_HA_DualAZ_ExistingVPC.template.json \
         --parameters    ParameterKey=VPCID,ParameterValue="$VPC" \
                         ParameterKey=VPCCIDR,ParameterValue="$VPCCIDR" \
@@ -231,24 +230,40 @@ fi
 #
 for (( c=1; c<=50; c++ ))
 do
-    count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack2a" |wc -l`
+    count=`aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --output text --region "$region" |grep "$stack2" |wc -l`
     if [ ${count} -eq 1 ]
     then
         break
     fi
     sleep $pause
 done
-exit
+
 #
 # Pull the outputs from the first template as environment variables that are used in the second and third templates
 #
 tfile=$(mktemp /tmp/foostack2.XXXXXXXXX)
-aws cloudformation describe-stacks --output text --region "$region" --stack-name "$stack2a" --query 'Stacks[*].Outputs[*].{KEY:OutputKey,Value:OutputValue}' > $tfile
-GWLB_ARN=`cat $tfile|grep ^SpGwlbArn|cut -f2 -d$'\t'`
+aws cloudformation describe-stacks --output text --region "$region" --stack-name "$stack2" --query 'Stacks[*].Outputs[*].{KEY:OutputKey,Value:OutputValue}' > $tfile
+USERNAME=`cat $tfile|grep ^Username|cut -f2 -d$'\t'`
+PASSWORD=`cat $tfile|grep ^Password|cut -f2 -d$'\t'`
+CLUSTER_LOGIN_URL=`cat $tfile|grep ^ClusterLoginURL|cut -f2 -d$'\t'`
+FAZ1_LOGIN_URL=`cat $tfile|grep ^FortiAnalyzer1LoginURL|cut -f2 -d$'\t'`
+FAZ2_LOGIN_URL=`cat $tfile|grep ^FortiAnalyzer2LoginURL|cut -f2 -d$'\t'`
 if [ -f $tfile ]
 then
     rm -f $tfile
 fi
+if [ -f $tfile ]
+then
+    rm -f $tfile
+fi
+
+echo
+echo "ForitiAnalyzer Username = $USERNAME"
+echo "ForitiAnalyzer Password = $PASSWORD"
+echo "Cluster Login URL = $CLUSTER_LOGIN_URL"
+echo "FortiAnalzyer AZ1 Login URL = $FAZ1_LOGIN_URL"
+echo "FortiAnalzyer AZ2 Login URL = $FAZ2_LOGIN_URL"
+echo
 
 exit
 #

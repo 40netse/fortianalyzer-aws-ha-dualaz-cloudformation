@@ -17,12 +17,12 @@ project_name=$stack_prefix-test
 # Base VPC Templates. (VPC's, Subnets, Route Tables, IGW's, etc)
 # Not used if deploying into an existing VPC.
 #
-stack1s=$project_name-base-vpc
+stack1=$project_name-base-vpc
 
 #
 # Templates to deploy Security VPC Fortigate's and Customer Endpoints
 #
-stack2a=$project_name-deploy-faz-ha
+stack2=$project_name-deploy-faz-ha
 
 
 #
