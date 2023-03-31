@@ -6,8 +6,8 @@
 #
 region=us-west-2
 
-stack_prefix=faz1ha
-environment_tag=dev
+stack_prefix=<change this>
+environment_tag=<change this>
 project_name=$stack_prefix-test
 
 #
@@ -30,12 +30,12 @@ stack2=$project_name-deploy-faz-ha
 #
 # This value needs to be changed. Account Specific
 #
-key=mdw-key-oregon
-license_bucket=mdw-fortibucket-us-west-2
+key=<change this>
+license_bucket=<change this>
 access_public="0.0.0.0/0"
 
-faz1_license_file=FAZ-10_0_1_11.lic
-faz2_license_file=FAZ-10_0_1_12.lic
+faz1_license_file=<change this>
+faz2_license_file=<change this>
 access_private="0.0.0.0/0"
 privateaccess="10.0.0.0/16"
 instance_type=m5.xlarge
@@ -49,13 +49,13 @@ faz1_ip_mgmt="10.0.0.11"
 faz1_ip_cluster="10.0.0.12"
 faz2_ip_mgmt="10.0.2.11"
 faz2_ip_cluster="10.0.2.12"
-faz1_sn=FAZ-VMTM23004040
-faz2_sn=FAZ-VMTM23004043
+faz1_sn=<change this>
+faz2_sn=<change this>
 #
 # Variables for VPC Endpoints
 #
 AcceptConnection=false
-AwsAccountToWhitelist="arn:aws:iam::123073262904:root"
+AwsAccountToWhitelist=<change this>
 #
 # Variables for Security VPC
 #
